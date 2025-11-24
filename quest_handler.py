@@ -1,297 +1,533 @@
-"""
+    """
 COMP 163 - Project 3: Quest Chronicles
-Quest Handler Module - Starter Code
+Main Game Module
 
 Name: [Your Name Here]
+AI Usage: ChatGPT used to help write explanatory comments and ensure clarity
+across the module. All game logic and structure remain student-authored.
 
-AI Usage: [Document any AI assistance used]
-
-This module handles quest management, dependencies, and completion.
+This module ties all other game modules together and provides the main
+interface the player interacts with:
+- Character creation and loading
+- Inventory management
+- Quests
+- Combat
+- Shopping
+- Saving and loading game state
 """
 
-from custom_exceptions import (
-    QuestNotFoundError,
-    QuestRequirementsNotMetError,
-    QuestAlreadyCompletedError,
-    QuestNotActiveError,
-    InsufficientLevelError
-)
+import character_manager
+import inventory_system
+import quest_handler
+import combat_system
+import game_data
+from custom_exceptions import *
 
 # ============================================================================
-# QUEST MANAGEMENT
+# GAME STATE
 # ============================================================================
 
-def accept_quest(character, quest_id, quest_data_dict):
-    """
-    Accept a new quest
-    
-    Args:
-        character: Character dictionary
-        quest_id: Quest to accept
-        quest_data_dict: Dictionary of all quest data
-    
-    Requirements to accept quest:
-    - Character level >= quest required_level
-    - Prerequisite quest completed (if any)
-    - Quest not already completed
-    - Quest not already active
-    
-    Returns: True if quest accepted
-    Raises:
-        QuestNotFoundError if quest_id not in quest_data_dict
-        InsufficientLevelError if character level too low
-        QuestRequirementsNotMetError if prerequisite not completed
-        QuestAlreadyCompletedError if quest already done
-    """
-    # TODO: Implement quest acceptance
-    # Check quest exists
-    # Check level requirement
-    # Check prerequisite (if not "NONE")
-    # Check not already completed
-    # Check not already active
-    # Add to character['active_quests']
-    pass
+# The currently active player character (dictionary returned by character_manager)
+current_character = None
 
-def complete_quest(character, quest_id, quest_data_dict):
-    """
-    Complete an active quest and grant rewards
-    
-    Args:
-        character: Character dictionary
-        quest_id: Quest to complete
-        quest_data_dict: Dictionary of all quest data
-    
-    Rewards:
-    - Experience points (reward_xp)
-    - Gold (reward_gold)
-    
-    Returns: Dictionary with reward information
-    Raises:
-        QuestNotFoundError if quest_id not in quest_data_dict
-        QuestNotActiveError if quest not in active_quests
-    """
-    # TODO: Implement quest completion
-    # Check quest exists
-    # Check quest is active
-    # Remove from active_quests
-    # Add to completed_quests
-    # Grant rewards (use character_manager.gain_experience and add_gold)
-    # Return reward summary
-    pass
+# Stores available quest definitions (loaded from game_data)
+all_quests = {}
 
-def abandon_quest(character, quest_id):
-    """
-    Remove a quest from active quests without completing it
-    
-    Returns: True if abandoned
-    Raises: QuestNotActiveError if quest not active
-    """
-    # TODO: Implement quest abandonment
-    pass
+# Stores all item definitions (also provided by game_data)
+all_items = {}
 
-def get_active_quests(character, quest_data_dict):
-    """
-    Get full data for all active quests
-    
-    Returns: List of quest dictionaries for active quests
-    """
-    # TODO: Implement active quest retrieval
-    # Look up each quest_id in character['active_quests']
-    # Return list of full quest data dictionaries
-    pass
-
-def get_completed_quests(character, quest_data_dict):
-    """
-    Get full data for all completed quests
-    
-    Returns: List of quest dictionaries for completed quests
-    """
-    # TODO: Implement completed quest retrieval
-    pass
-
-def get_available_quests(character, quest_data_dict):
-    """
-    Get quests that character can currently accept
-    
-    Available = meets level req + prerequisite done + not completed + not active
-    
-    Returns: List of quest dictionaries
-    """
-    # TODO: Implement available quest search
-    # Filter all quests by requirements
-    pass
+# Indicates whether the main game loop is running
+game_running = False
 
 # ============================================================================
-# QUEST TRACKING
+# MAIN MENU
 # ============================================================================
 
-def is_quest_completed(character, quest_id):
+def main_menu():
     """
-    Check if a specific quest has been completed
-    
-    Returns: True if completed, False otherwise
-    """
-    # TODO: Implement completion check
-    pass
+    Display the startup main menu and return the player's choice.
 
-def is_quest_active(character, quest_id):
+    This function loops until the user enters a valid option (1–3).
+    It does not perform actions — only returns the chosen integer.
     """
-    Check if a specific quest is currently active
-    
-    Returns: True if active, False otherwise
-    """
-    # TODO: Implement active check
-    pass
+    print("\n=== MAIN MENU ===")
+    print("1. New Game")
+    print("2. Load Game")
+    print("3. Exit")
 
-def can_accept_quest(character, quest_id, quest_data_dict):
-    """
-    Check if character meets all requirements to accept quest
-    
-    Returns: True if can accept, False otherwise
-    Does NOT raise exceptions - just returns boolean
-    """
-    # TODO: Implement requirement checking
-    # Check all requirements without raising exceptions
-    pass
+    while True:
+        choice = input("Enter choice (1-3): ").strip()
+        if choice in ["1", "2", "3"]:
+            return int(choice)
+        print("Invalid choice. Please enter 1, 2, or 3.")
 
-def get_quest_prerequisite_chain(quest_id, quest_data_dict):
-    """
-    Get the full chain of prerequisites for a quest
-    
-    Returns: List of quest IDs in order [earliest_prereq, ..., quest_id]
-    Example: If Quest C requires Quest B, which requires Quest A:
-             Returns ["quest_a", "quest_b", "quest_c"]
-    
-    Raises: QuestNotFoundError if quest doesn't exist
-    """
-    # TODO: Implement prerequisite chain tracing
-    # Follow prerequisite links backwards
-    # Build list in reverse order
-    pass
 
-# ============================================================================
-# QUEST STATISTICS
-# ============================================================================
+def new_game():
+    """
+    Start a new game by prompting the user for a character name and class.
 
-def get_quest_completion_percentage(character, quest_data_dict):
+    - Uses character_manager.create_character() to generate character data.
+    - Immediately saves the created character.
+    - Enters the main game loop upon successful creation.
     """
-    Calculate what percentage of all quests have been completed
-    
-    Returns: Float between 0 and 100
-    """
-    # TODO: Implement percentage calculation
-    # total_quests = len(quest_data_dict)
-    # completed_quests = len(character['completed_quests'])
-    # percentage = (completed / total) * 100
-    pass
+    global current_character
+    print("\n=== NEW GAME ===")
+    name = input("Enter your character's name: ").strip()
+    print("Choose a class: Warrior | Mage | Rogue | Cleric")
+    char_class = input("Enter class: ").strip().title()
 
-def get_total_quest_rewards_earned(character, quest_data_dict):
-    """
-    Calculate total XP and gold earned from completed quests
-    
-    Returns: Dictionary with 'total_xp' and 'total_gold'
-    """
-    # TODO: Implement reward calculation
-    # Sum up reward_xp and reward_gold for all completed quests
-    pass
+    try:
+        # Attempt to create a new character through character_manager
+        current_character = character_manager.create_character(name, char_class)
 
-def get_quests_by_level(quest_data_dict, min_level, max_level):
-    """
-    Get all quests within a level range
-    
-    Returns: List of quest dictionaries
-    """
-    # TODO: Implement level filtering
-    pass
+        # Automatically save the new character
+        character_manager.save_character(current_character)
+        print(f"\nCharacter '{name}' the {char_class} created successfully!")
 
-# ============================================================================
-# DISPLAY FUNCTIONS
-# ============================================================================
+        # Begin the game loop
+        game_loop()
 
-def display_quest_info(quest_data):
-    """
-    Display formatted quest information
-    
-    Shows: Title, Description, Rewards, Requirements
-    """
-    # TODO: Implement quest display
-    print(f"\n=== {quest_data['title']} ===")
-    print(f"Description: {quest_data['description']}")
-    # ... etc
-    pass
+    except InvalidCharacterClassError as e:
+        print(f"Error: {e}")
 
-def display_quest_list(quest_list):
-    """
-    Display a list of quests in summary format
-    
-    Shows: Title, Required Level, Rewards
-    """
-    # TODO: Implement quest list display
-    pass
 
-def display_character_quest_progress(character, quest_data_dict):
+def load_game():
     """
-    Display character's quest statistics and progress
-    
-    Shows:
-    - Active quests count
-    - Completed quests count
-    - Completion percentage
-    - Total rewards earned
-    """
-    # TODO: Implement progress display
-    pass
+    Load an existing saved character profile.
 
-# ============================================================================
-# VALIDATION
-# ============================================================================
+    - Lists available saved characters.
+    - Prompts user to choose one.
+    - Loads selected character via character_manager.load_character().
+    - Enters the main game loop if successful.
+    """
+    global current_character
+    print("\n=== LOAD GAME ===")
 
-def validate_quest_prerequisites(quest_data_dict):
-    """
-    Validate that all quest prerequisites exist
-    
-    Checks that every prerequisite (that's not "NONE") refers to a real quest
-    
-    Returns: True if all valid
-    Raises: QuestNotFoundError if invalid prerequisite found
-    """
-    # TODO: Implement prerequisite validation
-    # Check each quest's prerequisite
-    # Ensure prerequisite exists in quest_data_dict
-    pass
+    saved_chars = character_manager.list_saved_characters()
+
+    if not saved_chars:
+        print("No saved characters found.")
+        return
+
+    # Display list of save files
+    for i, char_name in enumerate(saved_chars, start=1):
+        print(f"{i}. {char_name}")
+
+    while True:
+        choice = input(f"Select character (1-{len(saved_chars)}): ").strip()
+
+        if choice.isdigit() and 1 <= int(choice) <= len(saved_chars):
+            selected_name = saved_chars[int(choice) - 1]
+
+            try:
+                # Attempt to load save file
+                current_character = character_manager.load_character(selected_name)
+                print(f"\nLoaded character: {selected_name}")
+
+                # Enter game loop
+                game_loop()
+                break
+
+            except CharacterNotFoundError:
+                print("Character not found.")
+                break
+
+            except SaveFileCorruptedError:
+                print("Save file corrupted.")
+                break
+
+        else:
+            print("Invalid choice.")
+
+def save_game():
+    raise NotImplementedError
 
 
 # ============================================================================
-# TESTING
+# GAME LOOP
 # ============================================================================
 
-if __name__ == "__main__":
-    print("=== QUEST HANDLER TEST ===")
-    
-    # Test data
-    # test_char = {
-    #     'level': 1,
-    #     'active_quests': [],
-    #     'completed_quests': [],
-    #     'experience': 0,
-    #     'gold': 100
-    # }
-    #
-    # test_quests = {
-    #     'first_quest': {
-    #         'quest_id': 'first_quest',
-    #         'title': 'First Steps',
-    #         'description': 'Complete your first quest',
-    #         'reward_xp': 50,
-    #         'reward_gold': 25,
-    #         'required_level': 1,
-    #         'prerequisite': 'NONE'
-    #     }
-    # }
-    #
-    # try:
-    #     accept_quest(test_char, 'first_quest', test_quests)
-    #     print("Quest accepted!")
-    # except QuestRequirementsNotMetError as e:
-    #     print(f"Cannot accept: {e}")
+def game_loop():
+    """
+    The main gameplay loop that runs until the player chooses to quit.
 
+    This function repeatedly:
+    - Displays the in-game menu
+    - Performs the chosen action
+    - Auto-saves after every action
+    """
+    global game_running
+    game_running = True
+
+    while game_running:
+        choice = game_menu()
+
+        # Trigger game actions depending on player choice
+        if choice == 1:
+            view_character_stats()
+        elif choice == 2:
+            view_inventory()
+        elif choice == 3:
+            quest_menu()
+        elif choice == 4:
+            explore()
+        elif choice == 5:
+            shop()
+        elif choice == 6:
+            save_game()
+            print("Game saved. Goodbye!")
+            game_running = False
+
+        # Automatically save after every action to prevent progress loss
+        save_game()
+
+
+def game_menu():
+    """
+    Display the main in-game menu and return the user's selection.
+
+    Choices:
+    1. Character Stats
+    2. Inventory
+    3. Quests
+    4. Exploration / Combat
+    5. Shop
+    6. Save & Quit
+    """
+    print("\n=== GAME MENU ===")
+    print("1. View Character Stats")
+    print("2. View Inventory")
+    print("3. Quest Menu")
+    print("4. Explore (Find Battles)")
+    print("5. Shop")
+    print("6. Save and Quit")
+
+    while True:
+        choice = input("Enter choice (1-6): ").strip()
+        if choice in ["1", "2", "3", "4", "5", "6"]:
+            return int(choice)
+        print("Invalid choice.")
+
+
+# ============================================================================
+# INVENTORY MANAGEMENT
+# ============================================================================
+
+def view_character_stats():
+    """
+    Display the current character's basic stats.
+
+    This provides a safe, read-only view so the game loop can call it
+    without raising a NameError if the function was missing.
+    """
+    global current_character
+
+    if not current_character:
+        print("\nNo character is currently loaded.")
+        return
+
+    print("\n=== CHARACTER STATS ===")
+    print(f"Name: {current_character.get('name', 'Unknown')}")
+    print(f"Class: {current_character.get('class', 'Unknown')}")
+    print(f"Level: {current_character.get('level', 1)}")
+    print(f"HP: {current_character.get('hp', 0)}/{current_character.get('max_hp', 0)}")
+    print(f"Gold: {current_character.get('gold', 0)}")
+
+    # Print common attributes if present
+    for stat in ['strength', 'dexterity', 'intelligence', 'wisdom', 'constitution', 'charisma']:
+        if stat in current_character:
+            print(f"{stat.capitalize()}: {current_character[stat]}")
+
+    print(f"Active Quests: {current_character.get('active_quests', [])}")
+    print(f"Completed Quests: {current_character.get('completed_quests', [])}")
+
+
+def view_inventory():
+    """
+    Display inventory contents and allow user interactions such as:
+    - Using consumables
+    - Equipping items
+    - Dropping items
+
+    This menu loops until the user chooses 'Back'.
+    """
+    global current_character, all_items
+
+    while True:
+        print("\n=== INVENTORY MENU ===")
+
+        # Show list of items (or a message if empty)
+        if not current_character["inventory"]:
+            print("Inventory is empty.")
+        else:
+            for i, item_id in enumerate(current_character["inventory"], start=1):
+                item = all_items.get(item_id, {"name": item_id})
+                print(f"{i}. {item['name']} (Type: {item.get('type', 'Unknown')})")
+
+        # Inventory options
+        print("\nOptions:")
+        print("1. Use Item")
+        print("2. Equip Item")
+        print("3. Drop Item")
+        print("4. Back")
+
+        choice = input("Enter choice (1-4): ").strip()
+
+        if choice == "1":
+            use_item()
+        elif choice == "2":
+            equip_item()
+        elif choice == "3":
+            drop_item()
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice.")
+
+
+def select_item():
+    """
+    Helper function to choose an item by index.
+
+    Returns:
+        item_id (str) or None if invalid selection
+    """
+    if not current_character["inventory"]:
+        return None
+
+    try:
+        choice = int(input("Select item number: ").strip())
+
+        if 1 <= choice <= len(current_character["inventory"]):
+            return current_character["inventory"][choice - 1]
+
+        print("Invalid selection.")
+        return None
+
+    except ValueError:
+        print("Invalid input.")
+        return None
+
+
+def use_item():
+    """
+    Use a consumable item, applying its effect.
+
+    This version applies stat effects directly within this module rather than
+    using inventory_system.use_item(), but preserves intended game behavior.
+    """
+    item_id = select_item()
+
+    if item_id:
+        item = all_items.get(item_id)
+
+        # Only consumables may be used
+        if item and item["type"] == "consumable":
+
+            # Parse effects manually
+            stat, value = item["effect"].split(":")
+            value = int(value)
+
+            # If healing, use character_manager to handle HP limits
+            if stat == "health":
+                healed = character_manager.heal_character(current_character, value)
+                print(f"You used {item['name']} and healed {healed} HP!")
+            else:
+                current_character[stat] += value
+                print(f"{stat.capitalize()} increased by {value}.")
+
+            # Remove consumed item
+            current_character["inventory"].remove(item_id)
+
+        else:
+            print("Item is not consumable.")
+
+
+def equip_item():
+    """
+    Equip equipment (weapons or armor).
+
+    This simplified version directly adjusts stats rather than using
+    the full inventory_system.equip_weapon/equip_armor logic.
+    """
+    item_id = select_item()
+
+    if item_id:
+        item = all_items.get(item_id)
+
+        if item and item["type"] in ["weapon", "armor"]:
+            stat, value = item["effect"].split(":")
+            value = int(value)
+
+            current_character[stat] += value
+            print(f"You equipped {item['name']}! {stat.capitalize()} +{value}.")
+        else:
+            print("Item cannot be equipped.")
+
+
+def drop_item():
+    """
+    Remove an item from the inventory permanently.
+    """
+    item_id = select_item()
+
+    if item_id:
+        current_character["inventory"].remove(item_id)
+        print(f"Item '{item_id}' dropped.")
+
+
+# ============================================================================
+# QUEST MENU
+# ============================================================================
+
+def quest_menu():
+    """
+    Display quest status:
+
+    - Active quests
+    - Completed quests
+    - Quests the player can start
+
+    No quest actions are performed here — only displays information.
+    """
+    print("\n=== QUEST MENU ===")
+    print("Active:", current_character["active_quests"])
+    print("Completed:", current_character["completed_quests"])
+
+    print("Available Quests:")
+    for qid, quest in all_quests.items():
+        if (qid not in current_character["active_quests"]
+            and qid not in current_character["completed_quests"]):
+
+            print(f"- {quest['title']} (Level {quest['required_level']})")
+
+def handle_character_death():
+    raise NotImplementedError
+
+
+# ============================================================================
+# COMBAT & EXPLORATION
+# ============================================================================
+
+def explore():
+    """
+    Trigger a random encounter and initiate combat.
+
+    - An enemy matching the player's level is selected.
+    - SimpleBattle manages turn-based combat.
+    - Post-battle rewards or consequences are applied.
+    """
+    enemy = combat_system.get_random_enemy_for_level(
+        current_character["level"]
+    )
+
+    battle = combat_system.SimpleBattle(current_character, enemy)
+
+    try:
+        result = battle.start_battle()
+
+        if result["winner"] == "player":
+            # Apply XP and gold rewards
+            character_manager.gain_experience(current_character, result["xp_gained"])
+            character_manager.add_gold(current_character, result["gold_gained"])
+
+        elif result["winner"] == "enemy":
+            # Player loses all HP — handle defeat
+            handle_character_death()
+
+    except CharacterDeadError:
+        handle_character_death()
+
+
+# ============================================================================
+# SHOP SYSTEM
+# ============================================================================
+
+def shop():
+    """
+    Display shop menu where players can:
+    - Buy items
+    - Sell items
+
+    Uses inventory_system for actual buy/sell logic.
+    """
+    global current_character, all_items
+
+    while True:
+        print("\n=== SHOP ===")
+        print(f"Gold: {current_character['gold']}")
+
+        print("Items for Sale:")
+        for i, (item_id, item) in enumerate(all_items.items(), start=1):
+            print(f"{i}. {item['name']} - {item['cost']} gold")
+
+        print("\nOptions:")
+        print("1. Buy Item")
+        print("2. Sell Item")
+        print("3. Back")
+
+        choice = input("Enter choice (1-3): ").strip()
+
+        if choice == "1":
+            buy_item()
+        elif choice == "2":
+            sell_item()
+        elif choice == "3":
+            break
+        else:
+            print("Invalid choice.")
+
+
+def buy_item():
+    """
+    Buy an item from the shop using inventory_system.buy_item().
+
+    Handles:
+    - Invalid selections
+    - Insufficient gold
+    - Full inventory
+    - Other errors
+    """
+    try:
+        choice = int(input("Enter item number to buy: ").strip())
+        item_id = list(all_items.keys())[choice - 1]
+        item = all_items[item_id]
+
+        # Use inventory_system’s purchasing logic
+        inventory_system.buy_item(current_character, item_id, item)
+
+        print(f"Bought {item['name']} for {item['cost']} gold.")
+
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+    except InsufficientFundsError:
+        print("You don't have enough gold to buy that item.")
+    except InventoryFullError:
+        print("Your inventory is full. Drop something before buying.")
+    except Exception as e:
+        print(f"Could not complete purchase: {e}")
+def sell_item():
+    """
+    Sell an item from the inventory using inventory_system.sell_item().
+
+    Handles:
+    - Invalid selections
+    - Item not found
+    - Other errors
+    """
+    try:
+        choice = int(input("Enter item number to sell: ").strip())
+        item_id = current_character["inventory"][choice - 1]
+        item = all_items[item_id]
+
+        # Use inventory_system’s selling logic
+        sell_price = inventory_system.sell_item(current_character, item_id, item)
+
+        print(f"Sold {item['name']} for {sell_price} gold.")
+
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+    except ItemNotFoundError:
+        print("You don't have that item to sell.")
+    except Exception as e:
+        print(f"Could not complete sale: {e}")
