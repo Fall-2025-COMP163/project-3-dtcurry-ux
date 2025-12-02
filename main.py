@@ -1,5 +1,52 @@
 """
 COMP 163 - Project 3: Quest Chronicles
+Main Module
+
+Name: Darenell Curry
+AI Usage: AI suggested a simple CLI interface and main loop for testing modules.
+"""
+
+from character_manager import *
+from combat_system import *
+from inventory_system import *
+from quest_handler import *
+from game_data import *
+
+def main():
+    # Load game data
+    game_data = load_game_data()
+
+    # Create or load character
+    name = "Hero"
+    try:
+        character = load_character(name)
+    except CharacterNotFoundError:
+        character = create_character(name, "Warrior")
+        save_character(character)
+
+    # Display basic info
+    print(f"{character['name']} - Level {character['level']} - HP {character['health']}/{character['max_health']}")
+
+    # Accept first quest
+    first_quest = game_data["quests"][0]
+    try:
+        accept_quest(character, first_quest)
+        print(f"Accepted quest: {first_quest['name']}")
+    except Exception as e:
+        print(f"Quest error: {e}")
+
+    # Simple battle test
+    enemy = {"name": "Goblin", "health": 30, "attack": 3, "defense": 1, "max_health": 30}
+    winner = battle(character, enemy)
+    print(f"{winner['name']} won the battle!")
+
+    # Save progress
+    save_character(character)
+
+if __name__ == "__main__":
+    main()
+"""
+COMP 163 - Project 3: Quest Chronicles
 Main Game Module
 
 Name: [Your Name Here]
