@@ -79,6 +79,19 @@ def new_game():
     except InvalidCharacterClassError as e:
         print(f"Error: {e}")
 
+def save_game():
+    """Save current game state to character file."""
+    global current_character
+
+    if current_character is None:
+        print("No character to save.")
+        return
+
+    try:
+        character_manager.save_character(current_character)
+        print("Game saved successfully!")
+    except SaveFileWriteError as e:
+        print(f"Error saving game: {e}")
 
 def load_game():
     """
