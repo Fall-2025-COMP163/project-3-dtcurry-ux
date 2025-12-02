@@ -1,63 +1,39 @@
 """
-Quest Handler Module
 COMP 163 - Project 3: Quest Chronicles
+Quest Handler Module
 
-This module manages:
-- Viewing quest status
-- Accepting quests
-- Completing quests
-- Reward handling
+Name: Darenell Curry
+AI Usage: AI suggested quest accept/complete flow with prerequisites checks.
 """
 
-import game_data
 from custom_exceptions import *
 
+def accept_quest(character, quest):
+    """
+    Accept a quest and add to active_quests.
+    Raises:
+        QuestAlreadyAcceptedError
+        QuestAlreadyCompletedError
+        InsufficientLevelError if character level too low
+    """
+    if quest["name"] in character["active_quests"]:
+        raise QuestAlreadyAcceptedError(f"{quest['name']} already active")
+    if quest["name"] in character["completed_quests"]:
+        raise QuestAlreadyCompletedError(f"{quest['name']} already completed")
+    if character["level"] < quest.get("level_required", 1):
+        raise InsufficientLevelError("Level too low for this quest")
 
-def accept_quest(character, quest_id, quests=None):
-    if quests is None:
-        quests = getattr(game_data, "QUESTS", {})
+    character["active_quests"].append(quest["name"])
 
-    if quest_id not in quests:
-        raise QuestNotFoundError()
-
-    quest = quests[quest_id]
-
-    if quest_id in character["completed_quests"]:
-        raise QuestAlreadyCompletedError()
-
-    if quest_id in character["active_quests"]:
-        raise QuestAlreadyAcceptedError()
-
-    if character["level"] < quest.get("required_level", 1):
-        raise InsufficientLevelError()
-
-    prereqs = quest.get("requires", [])
-    for req in prereqs:
-        if req not in character["completed_quests"]:
-            raise QuestRequirementsNotMetError()
-
-    character["active_quests"].append(quest_id)
-
-
-def complete_quest(character, quest_id, quests=None):
-    if quests is None:
-        quests = getattr(game_data, "QUESTS", {})
-
-    if quest_id not in character["active_quests"]:
-        raise QuestNotActiveError()
-
-    quest = quests[quest_id]
-
-    character["active_quests"].remove(quest_id)
-    character["completed_quests"].append(quest_id)
-
-    character["gold"] += quest["gold_reward"]
-    character["experience"] += quest["xp_reward"]
-
-
-def save_game():
-    pass
-
-
-def view_character_stats():
-    pass
+def complete_quest(character, quest):
+    """
+    Complete a quest if in active_quests.
+    Raises QuestNotActiveError if not active.
+    """
+    if quest["name"] not in character["active_quests"]:
+        raise QuestNotActiveError(f"{quest['name']} is not active")
+    character["active_quests"].remove(quest["name"])
+    character["completed_quests"].append(quest["name"])
+    # Reward AI-suggested: XP and gold
+    character["experience"] += quest.get("reward_xp", 0)
+    character["gold"] += quest.get("reward_gold", 0)
