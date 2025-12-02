@@ -1,21 +1,14 @@
-
 """
 COMP 163 - Project 3: Quest Chronicles
 Custom Exception Definitions
 
-Name: [Darenell Curry]
-AI Usage: [Document any AI assistance used]
-This module defines all custom exceptions used throughout the game.
-Exceptions are grouped into categories for clarity and easier error handling.
+Name: Darenell Curry
+AI Usage: Some AI guidance was used to suggest hierarchy and naming conventions.
 """
 
-# ============================================================================
+# ============================================================================ 
 # BASE GAME EXCEPTIONS
 # ============================================================================
-# These base classes allow us to organize errors by category.
-# For example, all combat-related errors inherit from CombatError,
-# making it easy to catch them together if needed.
-
 class GameError(Exception):
     """Base exception for all game-related errors."""
     pass
@@ -25,11 +18,11 @@ class DataError(GameError):
     pass
 
 class CharacterError(GameError):
-    """Base exception for character-related errors (stats, actions)."""
+    """Base exception for character-related errors."""
     pass
 
 class CombatError(GameError):
-    """Base exception for combat-related errors (battle flow)."""
+    """Base exception for combat-related errors."""
     pass
 
 class QuestError(GameError):
@@ -40,35 +33,30 @@ class InventoryError(GameError):
     """Base exception for inventory-related errors."""
     pass
 
-class InsufficientFundsError(InventoryError):
-    """Raised when player doesn't have enough gold."""
-    pass
-# ============================================================================
+# ============================================================================ 
 # SPECIFIC EXCEPTIONS
 # ============================================================================
-# Each specific exception inherits from its category base class.
-# This makes error handling flexible and organized.
 
-# -------------------- Data Loading Exceptions --------------------
+# Data Loading Exceptions
 class InvalidDataFormatError(DataError):
-    """Raised when a data file has incorrect format."""
+    """Raised when game data is formatted incorrectly."""
     pass
 
 class MissingDataFileError(DataError):
-    """Raised when a required data file is not found."""
+    """Raised when a required data file is missing."""
     pass
 
 class CorruptedDataError(DataError):
-    """Raised when a data file is corrupted or unreadable."""
+    """Raised when a data file is corrupted."""
     pass
 
-# -------------------- Character Exceptions --------------------
+# Character Exceptions
 class InvalidCharacterClassError(CharacterError):
-    """Raised when an invalid character class is specified."""
+    """Raised when a player selects a non-existent class."""
     pass
 
 class CharacterNotFoundError(CharacterError):
-    """Raised when trying to load a character that doesn't exist."""
+    """Raised when a saved character cannot be found."""
     pass
 
 class CharacterDeadError(CharacterError):
@@ -76,69 +64,7 @@ class CharacterDeadError(CharacterError):
     pass
 
 class InsufficientLevelError(CharacterError):
-    """Raised when character level is too low for an action."""
+    """Raised when a character tries to accept a quest or item above their level."""
     pass
 
-# -------------------- Combat Exceptions --------------------
-class InvalidTargetError(CombatError):
-    """Raised when trying to target an invalid enemy."""
-    pass
-
-class CombatNotActiveError(CombatError):
-    """Raised when trying to perform combat actions outside of battle."""
-    pass
-
-class AbilityOnCooldownError(CombatError):
-    """Raised when trying to use an ability that's on cooldown."""
-    pass
-
-# -------------------- Quest Exceptions --------------------
-class QuestNotFoundError(QuestError):
-    """Raised when trying to access a quest that doesn't exist."""
-    pass
-
-class QuestRequirementsNotMetError(QuestError):
-    """Raised when trying to start a quest without meeting requirements."""
-    pass
-
-class QuestAlreadyCompletedError(QuestError):
-    """Raised when trying to accept an already completed quest."""
-    pass
-
-class QuestNotActiveError(QuestError):
-    """Raised when trying to complete a quest that isn't active."""
-    pass
-
-# -------------------- Inventory Exceptions --------------------
-class InventoryFullError(InventoryError):
-    """Raised when trying to add items to a full inventory."""
-    pass
-
-class ItemNotFoundError(InventoryError):
-    """Raised when trying to use an item that doesn't exist."""
-    pass
-
-class InsufficientResourcesError(InventoryError):
-    """Raised when player doesn't have enough gold or items."""
-    pass
-
-class InvalidItemTypeError(InventoryError):
-    """Raised when item type is not recognized."""
-    pass
-
-# -------------------- Save/Load Exceptions --------------------
-class SaveFileCorruptedError(GameError):
-    """Raised when save file cannot be loaded due to corruption."""
-    pass
-
-class InvalidSaveDataError(GameError):
-    """Raised when save file contains invalid data."""
-    pass
-
-# ============================================================================
-# Example Usage (for beginners)
-# ============================================================================
-# try:
-#     raise InvalidCharacterClassError("Class 'Ninja' is not valid.")
-# except InvalidCharacterClassError as e:
-#     print(f"Error: {e}")
+# Combat
