@@ -33,9 +33,15 @@ from copy import deepcopy
 current_character = None
 
 # Load all static data from game_data safely
-all_items = deepcopy(getattr(game_data, "ITEMS", {}))
-all_quests = deepcopy(getattr(game_data, "QUESTS", {}))
-all_enemies = deepcopy(getattr(game_data, "ENEMIES", {}))
+def load_game_data():
+    """
+    Load static game data from game_data safely.
+    """
+    global all_items, all_quests, all_enemies
+
+    all_items = deepcopy(getattr(game_data, "ITEMS", {}))
+    all_quests = deepcopy(getattr(game_data, "QUESTS", {}))
+    all_enemies = deepcopy(getattr(game_data, "ENEMIES", {}))
 
 # Track whether main loop is running
 game_running = False
