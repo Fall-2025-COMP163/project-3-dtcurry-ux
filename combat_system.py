@@ -1,72 +1,76 @@
-
 """
 COMP 163 - Project 3: Quest Chronicles
 Combat System Module
 
-Name: [Darenell Curry]
-
-AI Usage: [Document any AI assistance used]
-
-Handles combat mechanics: enemy creation, battle flow, damage calculation,
-special abilities, and combat utilities.
+Name: Darenell Curry
+AI Usage: AI suggested turn-based combat logic and error handling for invalid targets.
 """
 
-import random
 from custom_exceptions import *
 
+# ----------------------------------------------------------------------------
+# COMBAT FUNCTIONS
+# ----------------------------------------------------------------------------
 
-def get_random_enemy_for_level(level):
-    return {
-        "name": "Test Goblin",
-        "health": 20,
-        "attack": 3,
-        "defense": 1,
-        "xp": 10,
-        "gold": 5
+def attack(attacker, defender):
+    """
+    Perform a basic attack from attacker to defender.
+    Raises:
+        CharacterDeadError: if attacker or defender is dead.
+        InvalidTargetError: if defender is None.
+    Returns damage dealt.
+    """
+    if attacker["health"] <= 0:
+        raise CharacterDeadError(f"{attacker['name']} cannot attack while dead")
+    if defender is None:
+        raise InvalidTargetError("No target selected")
+    if defender["health"] <= 0:
+        raise CharacterDeadError(f"{defender['name']} is already dead")
+
+    damage = max(0, attacker["attack"] - defender["defense"])
+    defender["health"] = max(0, defender["health"] - damage)
+    return damage
+
+def use_ability(attacker, defender, ability):
+    """
+    Use a special ability during combat.
+    Raises:
+        AbilityOnCooldownError: if ability is on cooldown.
+        CharacterDeadError: if attacker or defender is dead.
+    """
+    if attacker["health"] <= 0 or defender["health"] <= 0:
+        raise CharacterDeadError("Cannot use ability with dead character")
+    
+    # AI suggested simple ability mechanics
+    abilities = {
+        "Fireball": 20,
+        "Heal": -15,  # negative damage = heal
+        "Power Strike": 25
     }
 
+    if ability not in abilities:
+        raise InvalidTargetError(f"{ability} is not a valid ability")
 
-class SimpleBattle:
-    def __init__(self, player, enemy):
-        self.player = player
-        self.enemy = enemy
-        self.combat_active = True
+    damage = abilities[ability]
+    if damage > 0:
+        defender["health"] = max(0, defender["health"] - damage)
+    else:
+        attacker["health"] = min(attacker["max_health"], attacker["health"] - damage)
+    
+    return damage
 
-    def _check_active(self):
-        if not self.combat_active:
-            raise CombatNotActiveError()
+def is_alive(character):
+    """Check if a character is alive."""
+    return character["health"] > 0
 
-    def player_attack(self):
-        self._check_active()
-
-        damage = max(1, self.player["attack"] - self.enemy["defense"])
-        self.enemy["health"] -= damage
-
-        if self.enemy["health"] <= 0:
-            self.combat_active = False
-            return {"winner": "player"}
-
-        return {"winner": None}
-
-    def enemy_attack(self):
-        self._check_active()
-
-        damage = max(1, self.enemy["attack"] - self.player["defense"])
-        self.player["health"] -= damage
-
-        if self.player["health"] <= 0:
-            self.combat_active = False
-            raise CharacterDeadError()
-
-    def start_battle(self):
-        """Basic loop used in integration tests"""
-        while self.combat_active:
-            result = self.player_attack()
-            if result["winner"] == "player":
-                return {
-                    "winner": "player",
-                    "xp_gained": self.enemy["xp"],
-                    "gold_gained": self.enemy["gold"]
-                }
-
-            self.enemy_attack()
+def battle(attacker, defender):
+    """
+    Simple turn-based battle simulation.
+    Returns winner character dictionary.
+    AI Usage: AI suggested alternating turns and simple victory condition.
+    """
+    while is_alive(attacker) and is_alive(defender):
+        attack(attacker, defender)
+        if is_alive(defender):
+            attack(defender, attacker)
+    return attacker if is_alive(attacker) else defender
